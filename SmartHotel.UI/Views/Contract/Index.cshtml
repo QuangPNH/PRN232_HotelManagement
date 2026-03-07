@@ -1,0 +1,233 @@
+﻿@using SmartHotel.UI.DTOs
+@model PagedResult<SmartHotel.UI.DTOs.Contract.ContractResponse>
+
+@{
+    ViewData["Title"] = "Quản lý Hợp đồng thuê";
+    string currentKeyword = ViewBag.Keyword as string ?? "";
+    bool hasPrevious = Model.PageIndex > 1;
+    bool hasNext = Model.PageIndex < Model.TotalPages;
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa fa-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa fa-exclamation-circle me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="bg-light rounded h-100 p-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h6 class="mb-0">Danh sách Hợp đồng</h6>
+            <a href="@Url.Action("Create")" class="btn btn-primary btn-sm">
+                <i class="fa fa-file-contract me-2"></i>Tạo Hợp đồng Mới
+            </a>
+        </div>
+
+        <form method="get" asp-action="Index" class="row g-3 mb-4">
+            <div class="col-md-4 input-group">
+                <input type="text"
+                       name="keyword"
+                       class="form-control"
+                       placeholder="Tìm tên khách, số phòng..."
+                       value="@currentKeyword">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa fa-search"></i>
+                </button>
+                <a href="@Url.Action("Index")" class="btn btn-secondary">
+                    Reset
+                </a>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table text-start align-middle table-hover mb-0">
+                <thead>
+                    <tr class="text-dark">
+                        <th>Mã HĐ</th>
+                        <th>Phòng</th>
+                        <th>Khách thuê</th>
+                        <th>Ngày bắt đầu</th>
+                        <th>Giá thuê</th>
+                        <th>Trạng thái</th>
+                        <th class="text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Items != null && Model.Items.Any())
+                    {
+                        foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td>#@item.ContractId</td>
+                                <td class="fw-bold text-primary">@item.RoomNumber</td>
+                                <td>
+                                    <div>@item.TenantName</div>
+                                    <small class="text-muted">@item.TenantPhone</small>
+                                </td>
+                                <td>@item.StartDate.ToString("dd/MM/yyyy")</td>
+                                <td class="fw-bold text-danger">@item.Price.ToString("N0")</td>
+                                <td>
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="badge bg-success">Đang hiệu lực</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Đã thanh lý</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <a href="@Url.Action("Details", new { id = item.ContractId })"
+                                       class="btn btn-sm btn-link text-info">
+                                        <i class="fa fa-eye"></i> View
+                                    </a>
+
+                                    @if (item.IsActive)
+                                    {
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-danger"
+                                                onclick="openTerminateModal(
+                                                    @item.ContractId,
+                                                    '@item.RoomNumber',
+                                                    '@item.TenantName',
+                                                    '@item.StartDate.ToString("dd/MM/yyyy")'
+                                                )">
+                                            <i class="fa fa-door-open me-1"></i> Thanh lý
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                <i class="fa fa-box-open fs-3 mb-2 d-block"></i>
+                                Không có dữ liệu
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tổng số + Phân trang -->
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <span class="text-muted small">
+                Hiển thị <strong>@(Model?.Items?.Count() ?? 0)</strong> /
+                <strong>@(Model?.TotalCount ?? 0)</strong> hợp đồng
+            </span>
+
+            @if (Model != null && Model.TotalPages > 0)
+            {
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item @(hasPrevious ? "" : "disabled")">
+                            <a class="page-link"
+                               href="@Url.Action("Index", new {
+                                   pageIndex = Model.PageIndex - 1,
+                                   pageSize = Model.PageSize,
+                                   keyword = currentKeyword
+                               })">
+                                &laquo; Trước
+                            </a>
+                        </li>
+
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                                <a class="page-link"
+                                   href="@Url.Action("Index", new {
+                                       pageIndex = i,
+                                       pageSize = Model.PageSize,
+                                       keyword = currentKeyword
+                                   })">
+                                    @i
+                                </a>
+                            </li>
+                        }
+
+                        <li class="page-item @(hasNext ? "" : "disabled")">
+                            <a class="page-link"
+                               href="@Url.Action("Index", new {
+                                   pageIndex = Model.PageIndex + 1,
+                                   pageSize = Model.PageSize,
+                                   keyword = currentKeyword
+                               })">
+                                Sau &raquo;
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+        </div>
+
+    </div>
+</div>
+
+<!-- Terminate Contract Modal -->
+<div class="modal fade" id="terminateModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">
+                    <i class="fa fa-exclamation-triangle me-2"></i>
+                    Xác nhận thanh lý hợp đồng
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn đang thanh lý hợp đồng của:</p>
+
+                <ul class="list-unstyled">
+                    <li><strong>Phòng:</strong> <span id="terminateRoom"></span></li>
+                    <li><strong>Khách thuê:</strong> <span id="terminateTenant"></span></li>
+                    <li><strong>Ngày bắt đầu:</strong> <span id="terminateStartDate"></span></li>
+                </ul>
+
+                <div class="alert alert-warning mt-3 mb-0">
+                    Hành động này sẽ chuyển phòng về trạng thái <strong>Trống</strong>.
+                    Không thể hoàn tác.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <form id="terminateForm" method="post">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Hủy
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fa fa-check me-1"></i> Xác nhận Thanh lý
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openTerminateModal(contractId, roomNumber, tenantName, startDate) {
+
+            var form = document.getElementById("terminateForm");
+            form.action = "/Contract/Terminate/" + contractId;
+
+            document.getElementById("terminateRoom").innerText = roomNumber;
+            document.getElementById("terminateTenant").innerText = tenantName;
+            document.getElementById("terminateStartDate").innerText = startDate;
+
+            var modal = new bootstrap.Modal(document.getElementById('terminateModal'));
+            modal.show();
+        }
+    </script>
+}

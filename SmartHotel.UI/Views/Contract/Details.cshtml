@@ -1,0 +1,61 @@
+﻿@model SmartHotel.UI.DTOs.Contract.ContractResponse
+@{
+    ViewData["Title"] = "Chi tiết Hợp đồng";
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="col-sm-12 col-xl-6 mx-auto">
+        <div class="bg-light rounded h-100 p-4 position-relative">
+            <div class="position-absolute top-0 end-0 m-4">
+                @if (Model.IsActive)
+                {
+                    <span class="badge bg-success fs-6">ĐANG HOẠT ĐỘNG</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary fs-6">ĐÃ THANH LÝ</span>
+                }
+            </div>
+
+            <h5 class="mb-4 text-primary">Thông tin Hợp đồng #@Model.ContractId</h5>
+
+            <div class="row g-3">
+                <div class="col-6 text-muted">Phòng thuê:</div>
+                <div class="col-6 fw-bold fs-5 text-dark">@Model.RoomNumber</div>
+
+                <div class="col-6 text-muted">Khách thuê:</div>
+                <div class="col-6 fw-bold">@Model.TenantName <br /><small class="fw-normal">(@Model.TenantPhone)</small></div>
+
+                <hr class="my-2">
+
+                <div class="col-6 text-muted">Ngày bắt đầu:</div>
+                <div class="col-6">@Model.StartDate.ToString("dd/MM/yyyy")</div>
+
+                <div class="col-6 text-muted">Ngày kết thúc (Thực tế):</div>
+                <div class="col-6">
+                    @(Model.EndDate.HasValue? Model.EndDate.Value.ToString("dd/MM/yyyy") : "---")
+                </div>
+
+                <hr class="my-2">
+
+                <div class="col-6 text-muted">Giá thuê hàng tháng:</div>
+                <div class="col-6 fw-bold text-primary">@Model.Price.ToString("N0") đ</div>
+
+                <div class="col-6 text-muted">Tiền đặt cọc:</div>
+                <div class="col-6 fw-bold text-warning">@Model.DepositAmount.ToString("N0") đ</div>
+            </div>
+
+            <div class="mt-4 text-center">
+                <a asp-action="Index" class="btn btn-secondary me-2">Quay lại</a>
+
+                @if (Model.IsActive)
+                {
+                    <form asp-action="Terminate" asp-route-id="@Model.ContractId" method="post" class="d-inline"
+                          onsubmit="return confirm('Bạn chắc chắn muốn thanh lý hợp đồng này?');">
+                        <button type="submit" class="btn btn-danger"><i class="fa fa-times-circle me-2"></i>Thanh lý ngay</button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,67 @@
+﻿@model SmartHotel.UI.DTOs.Contract.CreateContractRequest
+@{
+    ViewData["Title"] = "Tạo Hợp đồng mới (Check-in)";
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="col-sm-12 col-xl-8 mx-auto">
+        <div class="bg-light rounded h-100 p-4">
+            <h6 class="mb-4 text-primary"><i class="fa fa-key me-2"></i>Check-in / Tạo Hợp đồng</h6>
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger">@ViewBag.Error</div>
+            }
+
+            <form asp-action="Create" method="post">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Chọn Phòng <span class="text-danger">*</span></label>
+                        <select asp-for="RoomId" asp-items="ViewBag.Rooms" class="form-select">
+                            <option value="">-- Chọn phòng --</option>
+                        </select>
+                        <span asp-validation-for="RoomId" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Khách thuê <span class="text-danger">*</span></label>
+                        <select asp-for="TenantId" asp-items="ViewBag.Tenants" class="form-select">
+                            <option value="">-- Chọn khách --</option>
+                        </select>
+                        <span asp-validation-for="TenantId" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Giá thuê (Tháng) <span class="text-danger">*</span></label>
+                        <input asp-for="Price" class="form-control" type="number" />
+                        <span asp-validation-for="Price" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Tiền cọc <span class="text-danger">*</span></label>
+                        <input asp-for="DepositAmount" class="form-control" type="number" />
+                        <span asp-validation-for="DepositAmount" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Ngày bắt đầu</label>
+                        <input asp-for="StartDate" class="form-control" type="date" />
+                        <span asp-validation-for="StartDate" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Ngày kết thúc (Dự kiến)</label>
+                        <input asp-for="EndDate" class="form-control" type="date" />
+                        <div class="form-text">Để trống nếu thuê không thời hạn.</div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+                    <button type="submit" class="btn btn-primary"><i class="fa fa-check me-2"></i>Hoàn tất Check-in</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

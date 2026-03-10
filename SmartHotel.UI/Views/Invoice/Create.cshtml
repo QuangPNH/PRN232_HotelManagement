@@ -1,0 +1,67 @@
+﻿@model SmartHotel.UI.DTOs.Invoice.CreateInvoiceRequest
+
+@{
+    ViewData["Title"] = "Lập Hóa Đơn Mới";
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa fa-exclamation-circle me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="col-12 col-xl-8 offset-xl-2">
+    <div class="bg-light rounded h-100 p-4">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h6 class="mb-0">Lập Hóa Đơn Tự Động</h6>
+            <a href="@Url.Action("Index")" class="btn btn-sm btn-secondary">
+                <i class="fa fa-arrow-left me-2"></i>Quay lại danh sách
+            </a>
+        </div>
+
+        <div class="alert alert-info py-2 mb-4">
+            <i class="fa fa-info-circle me-2"></i>
+            Hệ thống sẽ tự động lấy <strong>Tiền phòng</strong> và các <strong>Dịch vụ phát sinh (Điện, Nước,...)</strong> trong tháng để gom vào hóa đơn này.
+        </div>
+
+        <form asp-action="Create" method="post">
+            <div class="row g-3">
+
+                <div class="col-12">
+                    <label asp-for="ContractId" class="form-label fw-bold">Chọn Hợp Đồng / Khách Thuê <span class="text-danger">*</span></label>
+                    <select asp-for="ContractId" asp-items="ViewBag.Contracts" class="form-select" required>
+                        <option value="">-- Vui lòng chọn hợp đồng đang hiệu lực --</option>
+                    </select>
+                    <span asp-validation-for="ContractId" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Month" class="form-label fw-bold">Kỳ thu (Tháng) <span class="text-danger">*</span></label>
+                    <input asp-for="Month" type="number" min="1" max="12" class="form-control" placeholder="VD: 10" required />
+                    <span asp-validation-for="Month" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Year" class="form-label fw-bold">Năm <span class="text-danger">*</span></label>
+                    <input asp-for="Year" type="number" min="2000" class="form-control" placeholder="VD: 2024" required />
+                    <span asp-validation-for="Year" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12 mt-4 text-end">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="fa fa-calculator me-2"></i>Tiến hành lập Hóa Đơn
+                    </button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

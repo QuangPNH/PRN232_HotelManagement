@@ -1,0 +1,157 @@
+﻿@model SmartHotel.UI.DTOs.Invoice.InvoiceResponse
+
+@{
+    ViewData["Title"] = $"Chi tiết Hóa đơn INV-{Model.InvoiceId}";
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show d-print-none" role="alert">
+        <i class="fa fa-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show d-print-none" role="alert">
+        <i class="fa fa-exclamation-circle me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="col-12 col-xl-10 offset-xl-1">
+    <div class="d-flex justify-content-between align-items-center mb-3 d-print-none">
+        <a href="@Url.Action("Index")" class="btn btn-secondary btn-sm">
+            <i class="fa fa-arrow-left me-2"></i>Quay lại danh sách
+        </a>
+        <div>
+            <button onclick="window.print()" class="btn btn-info btn-sm text-white me-2">
+                <i class="fa fa-print me-2"></i>In Hóa đơn
+            </button>
+            @if (!Model.IsPaid)
+            {
+                <form method="post" asp-action="MarkAsPaid" asp-controller="Invoice" class="d-inline">
+                    <input type="hidden" name="id" value="@Model.InvoiceId" />
+                    <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Bạn xác nhận đã thu đủ tiền cho hóa đơn này?');">
+                        <i class="fa fa-money-bill-wave me-2"></i>Xác nhận Thu tiền
+                    </button>
+                </form>
+            }
+        </div>
+    </div>
+
+    <div class="bg-light rounded p-5 bg-white shadow-sm" id="invoice-print-area">
+        <div class="row border-bottom pb-4 mb-4">
+            <div class="col-sm-6">
+                <h3 class="text-primary mb-0"><i class="fa fa-building me-2"></i>SmartHotel</h3>
+                <p class="mb-0 text-muted small mt-1">Hóa đơn tiền phòng & Dịch vụ</p>
+            </div>
+            <div class="col-sm-6 text-sm-end mt-3 mt-sm-0">
+                <h5 class="mb-1 fw-bold">MÃ HĐ: INV-@Model.InvoiceId</h5>
+                <p class="mb-0 text-muted">Kỳ thu: <strong>Tháng @Model.InvoiceMonth.ToString("MM/yyyy")</strong></p>
+                <p class="mb-0 text-muted">
+                    Trạng thái:
+                    @if (Model.IsPaid)
+                    {
+                        <span class="text-success fw-bold">Đã thu tiền (@(Model.PaidDate.HasValue? Model.PaidDate.Value.ToString("dd/MM/yyyy") : ""))</span>
+                    }
+                    else
+                    {
+                        <span class="text-danger fw-bold">Chưa thanh toán</span>
+                    }
+                </p>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-sm-6">
+                <h6 class="fw-bold mb-2">Thông tin Khách thuê:</h6>
+                <div><strong>Họ tên:</strong> @Model.TenantName</div>
+                <div><strong>Phòng:</strong> @Model.RoomNumber</div>
+                <div><strong>Mã Hợp đồng:</strong> #@Model.ContractId</div>
+            </div>
+            <div class="col-sm-6 text-sm-end mt-3 mt-sm-0">
+                <h6 class="fw-bold mb-2">Thông tin thanh toán:</h6>
+                <div><strong>Hạn thanh toán:</strong> Mùng 5 hàng tháng</div>
+                <div><strong>Hình thức:</strong> Tiền mặt / Chuyển khoản</div>
+            </div>
+        </div>
+
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered border-secondary align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col" class="text-center" style="width: 50px;">STT</th>
+                        <th scope="col">Khoản thu / Dịch vụ</th>
+                        <th scope="col" class="text-center">Số lượng</th>
+                        <th scope="col" class="text-end">Đơn giá (VNĐ)</th>
+                        <th scope="col" class="text-end">Thành tiền (VNĐ)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.InvoiceDetails != null && Model.InvoiceDetails.Any())
+                    {
+                        int stt = 1;
+                        foreach (var detail in Model.InvoiceDetails)
+                        {
+                            <tr>
+                                <td class="text-center">@(stt++)</td>
+                                <td>@detail.ServiceName</td>
+                                <td class="text-center">@detail.Quantity</td>
+                                <td class="text-end">@detail.UnitPrice.ToString("N0")</td>
+                                <td class="text-end fw-bold">@detail.Amount.ToString("N0")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">Không có chi tiết dịch vụ.</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="4" class="text-end fs-5 text-uppercase">Tổng cộng:</th>
+                        <th class="text-end fs-5 text-danger fw-bold">@Model.TotalAmount.ToString("N0")</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="row text-center mt-5">
+            <div class="col-6">
+                <p class="fw-bold mb-5">Khách thuê</p>
+                <p class="text-muted">(Ký và ghi rõ họ tên)</p>
+            </div>
+            <div class="col-6">
+                <p class="fw-bold mb-5">Người lập phiếu</p>
+                <p class="text-muted">(Ký và ghi rõ họ tên)</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        @@media print {
+            body * {
+                visibility: hidden;
+            }
+            #invoice-print-area, #invoice-print-area * {
+                visibility: visible; 
+            }
+            #invoice-print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                box-shadow: none !important;
+                border: none !important;
+            }
+            .d-print-none {
+                display: none !important;
+            }
+        }
+    </style>
+}

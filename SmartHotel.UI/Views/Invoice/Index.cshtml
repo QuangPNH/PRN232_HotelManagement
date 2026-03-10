@@ -1,0 +1,220 @@
+﻿@using SmartHotel.UI.DTOs
+@model PagedResult<SmartHotel.UI.DTOs.Invoice.InvoiceResponse>
+
+@{
+    ViewData["Title"] = "Quản lý Hóa đơn";
+    var hasPrevious = Model.PageIndex > 1;
+    var hasNext = Model.PageIndex < Model.TotalPages;
+
+    var month = Context.Request.Query["month"].ToString();
+    var year = Context.Request.Query["year"].ToString();
+    var isPaid = Context.Request.Query["isPaid"].ToString();
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa fa-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa fa-exclamation-circle me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="col-12">
+    <div class="bg-light rounded h-100 p-4">
+
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h6 class="mb-0">Danh sách Hóa đơn</h6>
+            <a href="@Url.Action("Create")" class="btn btn-primary btn-sm">
+                <i class="fa fa-file-invoice-dollar me-2"></i>Lập Hóa đơn mới
+            </a>
+        </div>
+
+        <form method="get" asp-action="Index" class="row g-3 mb-4">
+            <div class="col-md-2">
+                <input type="number" name="month" min="1" max="12"
+                       value="@Context.Request.Query["month"]"
+                       class="form-control form-control-sm"
+                       placeholder="Tháng (1-12)" />
+            </div>
+
+            <div class="col-md-2">
+                <input type="number" name="year" min="2000"
+                       value="@Context.Request.Query["year"]"
+                       class="form-control form-control-sm"
+                       placeholder="Năm (VD: 2024)" />
+            </div>
+
+            <div class="col-md-3">
+                <select name="isPaid" class="form-select form-select-sm">
+                    <option value="">-- Trạng thái thanh toán --</option>
+                    <option value="true" selected="@(isPaid == "true")">Đã thanh toán (Thu đủ)</option>
+                    <option value="false" selected="@(isPaid == "false")">Chưa thanh toán (Còn nợ)</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-sm btn-primary">
+                    <i class="fa fa-search me-1"></i> Lọc
+                </button>
+                <a href="@Url.Action("Index")" class="btn btn-sm btn-secondary">
+                    Reset
+                </a>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table text-start align-middle">
+                <thead>
+                    <tr>
+                        <th scope="col">#Mã HĐ</th>
+                        <th scope="col">Phòng</th>
+                        <th scope="col">Kỳ thu</th>
+                        <th scope="col">Ngày lập</th>
+                        <th scope="col">Tổng tiền (VNĐ)</th>
+                        <th scope="col">Trạng thái</th>
+                        <th scope="col" class="text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Items != null && Model.Items.Any())
+                    {
+                        foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <th scope="row">INV-@item.InvoiceId</th>
+                                <td class="fw-bold text-primary">Phòng @item.RoomNumber</td>
+
+                                <td>Tháng @item.InvoiceMonth.ToString("MM/yyyy")</td>
+
+                                <td>@(item.PaidDate.HasValue? item.PaidDate.Value.ToString("dd/MM/yyyy") : "---")</td>
+
+                                <td class="fw-bold text-danger">@item.TotalAmount.ToString("N0")</td>
+                                <td>
+                                    @if (item.IsPaid)
+                                    {
+                                        <span class="badge bg-success"><i class="fa fa-check-circle me-1"></i> Đã thu tiền</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark"><i class="fa fa-clock me-1"></i> Chưa thu</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <a href="@Url.Action("Details", new { id = item.InvoiceId })"
+                                       class="btn btn-sm btn-link text-info" title="Xem chi tiết">
+                                        <i class="fa fa-eye"></i> Xem
+                                    </a>
+
+                                    @if (!item.IsPaid)
+                                    {
+                                        <button type="button"
+                                                class="btn btn-sm btn-link text-success"
+                                                title="Xác nhận thu tiền"
+                                                onclick="openPayModal(@item.InvoiceId, '@item.RoomNumber', '@item.InvoiceMonth.Month', '@item.InvoiceMonth.Year', '@item.TotalAmount.ToString("N0")')">
+                                            <i class="fa fa-money-bill-wave me-1"></i> Thu tiền
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                <i class="fa fa-box-open fs-3 mb-2 d-block"></i>
+                                Không tìm thấy hóa đơn nào.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mt-4">
+    <span class="text-muted small">
+        Hiển thị <strong>@(Model?.Items?.Count() ?? 0)</strong> /
+        <strong>@(Model?.TotalCount ?? 0)</strong> hóa đơn
+    </span>
+
+    @if (Model != null && Model.TotalPages > 0)
+    {
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item @(hasPrevious ? "" : "disabled")">
+                    <a class="page-link"
+                       href="@Url.Action("Index", new { pageIndex = Model.PageIndex - 1, pageSize = Model.PageSize, month = month, year = year, isPaid = isPaid })">
+                        &laquo; Trước
+                    </a>
+                </li>
+
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                        <a class="page-link"
+                           href="@Url.Action("Index", new { pageIndex = i, pageSize = Model.PageSize, month = month, year = year, isPaid = isPaid })">
+                            @i
+                        </a>
+                    </li>
+                }
+
+                <li class="page-item @(hasNext ? "" : "disabled")">
+                    <a class="page-link"
+                       href="@Url.Action("Index", new { pageIndex = Model.PageIndex + 1, pageSize = Model.PageSize, month = month, year = year, isPaid = isPaid })">
+                        Sau &raquo;
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    }
+</div>
+
+<div class="modal fade" id="payInvoiceModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fa fa-check-circle me-2"></i>Xác nhận Thu tiền</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn đang xác nhận thu tiền cho hóa đơn của <strong>Phòng <span id="payRoomNumber"></span></strong> (Kỳ thu: <span id="payPeriod"></span>).</p>
+                <div class="alert alert-info">
+                    Số tiền cần thu: <strong class="fs-5 text-danger" id="payAmount"></strong> VNĐ
+                </div>
+                <p class="mb-0 text-muted small">Lưu ý: Hành động này không thể hoàn tác. Vui lòng kiểm tra kỹ số tiền khách đưa hoặc chuyển khoản trước khi xác nhận.</p>
+            </div>
+            <div class="modal-footer">
+                <form id="payInvoiceForm" method="post" asp-action="MarkAsPaid" asp-controller="Invoice">
+                    <input type="hidden" name="id" id="invoiceIdToPay" />
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-success"><i class="fa fa-save me-2"></i>Đã nhận đủ tiền</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openPayModal(invoiceId, roomNumber, month, year, totalAmount) {
+            // Set data to modal
+            document.getElementById("invoiceIdToPay").value = invoiceId;
+            document.getElementById("payRoomNumber").innerText = roomNumber;
+            document.getElementById("payPeriod").innerText = "Tháng " + month + "/" + year;
+            document.getElementById("payAmount").innerText = totalAmount;
+
+            // Show modal
+            var modal = new bootstrap.Modal(document.getElementById('payInvoiceModal'));
+            modal.show();
+        }
+    </script>
+}

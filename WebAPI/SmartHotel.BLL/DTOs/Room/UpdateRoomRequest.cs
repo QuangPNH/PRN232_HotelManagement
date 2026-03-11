@@ -1,0 +1,17 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace SmartHotel.BLL.DTOs.Room
+{
+    public class UpdateRoomRequest : CreateRoomRequest
+    {
+        public int RoomId { get; set; }
+        public string Status { get; set; } 
+        [Required]
+        public string ImageUrl { get; set; }
+    }
+}

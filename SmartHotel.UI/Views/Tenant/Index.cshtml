@@ -1,0 +1,237 @@
+﻿@using SmartHotel.UI.DTOs
+@model PagedResult<SmartHotel.UI.DTOs.Tenant.TenantResponse>
+
+@{
+    ViewData["Title"] = "Quản lý Khách thuê";
+    var hasPrevious = Model.PageIndex > 1;
+    var hasNext = Model.PageIndex < Model.TotalPages;
+
+    var keyword = Context.Request.Query["keyword"].ToString();
+    var isActive = Context.Request.Query["isActive"].ToString();
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa fa-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa fa-exclamation-circle me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="col-12">
+    <div class="bg-light rounded h-100 p-4">
+
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h6 class="mb-0">Danh sách Khách thuê</h6>
+            <a href="@Url.Action("Create")" class="btn btn-primary btn-sm">
+                <i class="fa fa-plus me-2"></i>Thêm Khách
+            </a>
+        </div>
+        
+        <form method="get" asp-action="Index" class="row g-3 mb-3">
+
+            <div class="col-md-4">
+                <input type="text" name="keyword"
+                       value="@Context.Request.Query["keyword"]"
+                       class="form-control form-control-sm"
+                       placeholder="Tìm tên, SĐT, CCCD..." />
+            </div>
+
+            <div class="col-md-3">
+                <select name="isActive" class="form-select form-select-sm">
+                    <option value="">-- Trạng thái Tài khoản --</option>
+                    <option value="true" selected="@(isActive == "true")">Đang hoạt động</option>
+                    <option value="false" selected="@(isActive == "false")">Chờ duyệt / Đã khóa</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-sm btn-primary">
+                    <i class="fa fa-search me-1"></i> Lọc
+                </button>
+                <a href="@Url.Action("Index")" class="btn btn-sm btn-secondary">
+                    Reset
+                </a>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table text-start align-middle">
+                <thead>
+                    <tr>
+                        <th scope="col">#ID</th>
+                        <th scope="col">Họ và tên</th>
+                        <th scope="col">Số điện thoại</th>
+                        <th scope="col">CCCD</th>
+                        <th scope="col">Trạng thái phòng</th>
+                        <th scope="col">Trạng thái TK</th>
+                        <th scope="col" class="text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Items != null && Model.Items.Any())
+                    {
+                        foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <th scope="row">@item.TenantId</th>
+                                <td class="fw-bold">@item.FullName</td>
+                                <td>@item.Phone</td>
+                                <td>@item.CCCD</td>
+                                <td>
+                                    @if (item.IsRenting)
+                                    {
+                                        <span class="badge bg-success">Phòng @item.CurrentRoom</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Chưa thuê</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.IsActive == true)
+                                    {
+                                        <span class="badge bg-success">Hoạt động</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Khóa/Chờ duyệt</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <button type="button"
+                                            class="btn btn-sm btn-link @(item.IsActive ? "text-danger" : "text-success")"
+                                            title="@(item.IsActive ? "Khóa tài khoản" : "Duyệt/Mở khóa")"
+                                            onclick="openToggleStatusModal(@item.TenantId, '@item.FullName', @item.IsActive.ToString().ToLower())">
+                                        <i class="fa @(item.IsActive ? "fa-lock" : "fa-unlock") me-1"></i>
+                                        @(item.IsActive ? "Khóa" : "Mở khóa")
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">
+                                Không có dữ liệu.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mt-4">
+    <span class="text-muted small">
+        Hiển thị <strong>@Model.Items.Count()</strong> / 
+        <strong>@Model.TotalCount</strong> bản ghi
+    </span>
+
+    <nav>
+        <ul class="pagination pagination-sm mb-0">
+
+            <li class="page-item @(hasPrevious ? "" : "disabled")">
+                <a class="page-link"
+                   href="@Url.Action("Index", new {
+                        pageIndex = Model.PageIndex - 1,
+                        pageSize = Model.PageSize,
+                        keyword = keyword,
+                        isActive = isActive
+                   })">
+                    &laquo; Trước
+                </a>
+            </li>
+
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                    <a class="page-link"
+                       href="@Url.Action("Index", new {
+                            pageIndex = i,
+                            pageSize = Model.PageSize,
+                            keyword = keyword,
+                            isActive = isActive
+                       })">
+                        @i
+                    </a>
+                </li>
+            }
+
+            <li class="page-item @(hasNext ? "" : "disabled")">
+                <a class="page-link"
+                   href="@Url.Action("Index", new {
+                        pageIndex = Model.PageIndex + 1,
+                        pageSize = Model.PageSize,
+                        keyword = keyword,
+                        isActive = isActive
+                   })">
+                    Sau &raquo;
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<div class="modal fade" id="toggleStatusModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="toggleStatusModalTitle">Xác nhận thao tác</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Bạn có chắc chắn muốn <strong id="actionName"></strong> tài khoản của khách hàng
+                <strong id="tenantName"></strong> không?
+            </div>
+            <div class="modal-footer">
+                <form id="toggleStatusForm" method="post" asp-action="ToggleStatus" asp-controller="Tenant">
+                    <input type="hidden" name="id" id="tenantIdToToggle" />
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn" id="toggleStatusSubmitBtn">Xác nhận</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openToggleStatusModal(tenantId, tenantName, currentStatusIsActive) {
+            
+            // Set thông tin vào modal
+            document.getElementById("tenantName").innerText = tenantName;
+            document.getElementById("tenantIdToToggle").value = tenantId;
+
+            // Đổi giao diện modal tùy theo hành động Khóa hay Mở
+            var modalHeader = document.querySelector("#toggleStatusModal .modal-header");
+            var submitBtn = document.getElementById("toggleStatusSubmitBtn");
+            var actionName = document.getElementById("actionName");
+
+            if (currentStatusIsActive) {
+                // Đang mở -> Chuẩn bị Khóa
+                actionName.innerText = "KHÓA";
+                modalHeader.className = "modal-header bg-danger text-white";
+                submitBtn.className = "btn btn-danger";
+            } else {
+                // Đang khóa -> Chuẩn bị Mở
+                actionName.innerText = "MỞ KHÓA / DUYỆT";
+                modalHeader.className = "modal-header bg-success text-white";
+                submitBtn.className = "btn btn-success";
+            }
+
+            // Hiển thị modal
+            var modal = new bootstrap.Modal(document.getElementById('toggleStatusModal'));
+            modal.show();
+        }
+    </script>
+}

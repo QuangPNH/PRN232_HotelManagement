@@ -1,0 +1,105 @@
+﻿@model SmartHotel.UI.DTOs.Tenant.TenantDashboardViewModel
+
+@{
+    ViewData["Title"] = "Tổng quan cá nhân";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+
+        <div class="col-sm-12 col-xl-6">
+            <div class="bg-light rounded h-100 p-4 shadow-sm border-top border-primary border-4">
+                <h5 class="mb-4"><i class="fa fa-home text-primary me-2"></i>Phòng Của Tôi</h5>
+
+                @if (Model.Contracts != null && Model.Contracts.Any())
+                {
+                    foreach (var contract in Model.Contracts)
+                    {
+                        <div class="card mb-3 border-0 bg-white shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="card-title text-primary mb-0">Phòng @contract.RoomNumber</h5>
+                                    @if (contract.IsActive)
+                                    {
+                                        <span class="badge bg-success">Đang thuê</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Đã trả phòng</span>
+                                    }
+                                </div>
+                                <p class="card-text mb-1"><strong>Giá thuê:</strong> <span class="text-danger fw-bold">@contract.Price.ToString("N0") VNĐ</span>/tháng</p>
+                                <p class="card-text mb-1"><strong>Tiền cọc:</strong> @contract.DepositAmount.ToString("N0") VNĐ</p>
+                                <p class="card-text mb-0"><small class="text-muted">Thời hạn: @contract.StartDate.ToString("dd/MM/yyyy") - @(contract.EndDate?.ToString("dd/MM/yyyy") ?? "Không xác định")</small></p>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="alert alert-warning">Bạn hiện chưa thuê phòng nào.</div>
+                }
+            </div>
+        </div>
+
+        <div class="col-sm-12 col-xl-6">
+            <div class="bg-light rounded h-100 p-4 shadow-sm border-top border-danger border-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0"><i class="fa fa-file-invoice-dollar text-danger me-2"></i>Hóa Đơn Của Tôi</h5>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table text-start align-middle table-hover mb-0">
+                        <thead>
+                            <tr class="text-dark">
+                                <th scope="col">Kỳ thu</th>
+                                <th scope="col">Tổng tiền</th>
+                                <th scope="col">Trạng thái</th>
+                                <th scope="col">Chi tiết</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Invoices != null && Model.Invoices.Any())
+                            {
+                                foreach (var inv in Model.Invoices)
+                                {
+                                    <tr>
+                                        <td>Tháng @inv.InvoiceMonth.ToString("MM/yyyy")</td>
+                                        <td class="fw-bold text-danger">@inv.TotalAmount.ToString("N0")</td>
+                                        <td>
+                                            @if (inv.IsPaid)
+                                            {
+                                                <span class="badge bg-success">Đã đóng</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning text-dark">Chưa đóng</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <a class="btn btn-sm btn-outline-info" href="@Url.Action("InvoiceDetails", "TenantPortal", new { id = inv.InvoiceId })">Xem</a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">Không có hóa đơn nào.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (Model.Invoices != null && Model.Invoices.Any(i => !i.IsPaid))
+                {
+                    <div class="alert alert-danger mt-4 mb-0">
+                        <i class="fa fa-exclamation-triangle me-2"></i>Bạn có hóa đơn chưa thanh toán. Vui lòng thanh toán đúng hạn!
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

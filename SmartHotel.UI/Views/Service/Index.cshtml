@@ -1,0 +1,191 @@
+﻿@using SmartHotel.UI.DTOs
+@model PagedResult<SmartHotel.UI.DTOs.Service.ServiceResponse>
+
+@{
+    ViewData["Title"] = "Quản lý Dịch vụ";
+    string currentKeyword = ViewBag.Keyword as string ?? "";
+
+    bool hasPrevious = Model.PageIndex > 1;
+    bool hasNext = Model.PageIndex < Model.TotalPages;
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="fa fa-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        <i class="fa fa-exclamation-circle me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="col-12">
+        <div class="bg-light rounded h-100 p-4">
+
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <h6 class="mb-0">Dịch vụ & Tiện ích</h6>
+                <a href="@Url.Action("Create")" class="btn btn-primary btn-sm">
+                    <i class="fa fa-plus me-2"></i>Thêm Mới
+                </a>
+            </div>
+
+            <form method="get" asp-action="Index" class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <input type="text" name="keyword" class="form-control"
+                               placeholder="Tìm tên dịch vụ..." value="@currentKeyword">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        @if (!string.IsNullOrEmpty(currentKeyword))
+                        {
+                            <a href="@Url.Action("Index")" class="btn btn-outline-secondary" title="Xóa lọc">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        }
+                    </div>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table text-start align-middle table-hover mb-0">
+                    <thead>
+                        <tr class="text-dark">
+                            <th>#ID</th>
+                            <th>Tên dịch vụ</th>
+                            <th>Đơn giá</th>
+                            <th>Đơn vị</th>
+                            <th>Cách tính</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Items != null && Model.Items.Any())
+                        {
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td>@item.ServiceId</td>
+                                    <td class="fw-bold text-primary">@item.ServiceName</td>
+                                    <td class="fw-bold">@item.UnitPrice.ToString("N0") đ</td>
+                                    <td>@item.Unit</td>
+                                    <td>
+                                        @if (item.IsMeterBased)
+                                        {
+                                            <span class="badge bg-info text-dark">Theo chỉ số</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">Trọn gói</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a href="@Url.Action("Details", new { id = item.ServiceId })"
+                                           class="btn btn-sm btn-link text-info"
+                                           title="Xem chi tiết">
+                                            <i class="fa fa-eye me-1"></i> Detail
+                                        </a>
+
+                                        <a href="@Url.Action("Edit", new { id = item.ServiceId })"
+                                           class="btn btn-sm btn-link text-primary"
+                                           title="Sửa">
+                                            <i class="fa fa-edit me-1"></i> Edit
+                                        </a>
+
+                                        <button type="button"
+                                                class="btn btn-sm btn-link text-danger"
+                                                onclick="openDeleteModal(@item.ServiceId)">
+                                            <i class="fa fa-trash me-1"></i> Delete
+                                        </button>
+
+
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    Không tìm thấy dữ liệu nào phù hợp.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <span class="text-muted small">
+                    Hiển thị <strong>@Model.Items.Count()</strong> / <strong>@Model.TotalCount</strong> bản ghi
+                </span>
+
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item @(hasPrevious ? "" : "disabled")">
+                            <a class="page-link"
+                               href="@Url.Action("Index", new { keyword = currentKeyword, pageIndex = Model.PageIndex - 1 })">
+                                &laquo; Trước
+                            </a>
+                        </li>
+
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                                <a class="page-link"
+                                   href="@Url.Action("Index", new { keyword = currentKeyword, pageIndex = i })">
+                                    @i
+                                </a>
+                            </li>
+                        }
+
+                        <li class="page-item @(hasNext ? "" : "disabled")">
+                            <a class="page-link"
+                               href="@Url.Action("Index", new { keyword = currentKeyword, pageIndex = Model.PageIndex + 1 })">
+                                Sau &raquo;
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Xác nhận xóa</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Bạn có chắc chắn muốn xóa dịch vụ này không?
+            </div>
+            <div class="modal-footer">
+                <form id="deleteForm" method="post">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger">Xóa</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        function openDeleteModal(serviceId) {
+            var form = document.getElementById("deleteForm");
+            form.action = "/Service/Delete/" + serviceId;
+
+            var modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+    </script>
+}

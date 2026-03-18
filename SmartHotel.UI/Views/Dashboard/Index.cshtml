@@ -1,0 +1,164 @@
+﻿@model SmartHotel.UI.DTOs.Statistics.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard - Tổng quan";
+    var totalYearRevenue = Model.RevenueData.Sum(x => x.TotalRevenue);
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="bg-light rounded d-flex align-items-center justify-content-between p-4 shadow-sm">
+                <i class="fa fa-chart-line fa-3x text-primary"></i>
+                <div class="ms-3">
+                    <p class="mb-2">Tổng Phòng</p>
+                    <h6 class="mb-0">@Model.RoomStatus.TotalRooms</h6>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="bg-light rounded d-flex align-items-center justify-content-between p-4 shadow-sm">
+                <i class="fa fa-chart-bar fa-3x text-success"></i>
+                <div class="ms-3">
+                    <p class="mb-2">Đang Thuê</p>
+                    <h6 class="mb-0">@Model.RoomStatus.RentedRooms</h6>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="bg-light rounded d-flex align-items-center justify-content-between p-4 shadow-sm">
+                <i class="fa fa-chart-area fa-3x text-info"></i>
+                <div class="ms-3">
+                    <p class="mb-2">Lấp đầy</p>
+                    <h6 class="mb-0">@Model.RoomStatus.OccupancyRate%</h6>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="bg-light rounded d-flex align-items-center justify-content-between p-4 shadow-sm">
+                <i class="fa fa-chart-pie fa-3x text-warning"></i>
+                <div class="ms-3">
+                    <p class="mb-2">Doanh thu năm</p>
+                    <h6 class="mb-0">@totalYearRevenue.ToString("N0") đ</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+
+        <div class="col-sm-12 col-xl-6">
+            <div class="bg-light text-center rounded p-4 h-100 shadow-sm">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h6 class="mb-0">Biểu đồ Doanh thu (VNĐ)</h6>
+                    <small class="text-muted">Năm @DateTime.Now.Year</small>
+                </div>
+                <canvas id="salse-revenue"></canvas>
+            </div>
+        </div>
+
+        <div class="col-sm-12 col-xl-6">
+            <div class="bg-light text-center rounded p-4 h-100 shadow-sm">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h6 class="mb-0">Tình trạng phòng</h6>
+                    <small class="text-muted">Real-time</small>
+                </div>
+                <canvas id="room-status-chart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            // --- A. CHUẨN BỊ DỮ LIỆU TỪ C# MODEL ---
+
+            // 1. Dữ liệu Doanh thu (Map từ List<RevenueItem>)
+            // Tạo mảng Label: ["Tháng 1", "Tháng 2", ...]
+            var revenueLabels = @Json.Serialize(Model.RevenueData.Select(x => "T" + x.Month));
+            // Tạo mảng Data: [1000000, 2500000, 0, ...]
+            var revenueValues = @Json.Serialize(Model.RevenueData.Select(x => x.TotalRevenue));
+
+            // 2. Dữ liệu Phòng (Map từ RoomStatusItem)
+            var roomValues = [
+                @Model.RoomStatus.RentedRooms,      // Đang thuê
+                @Model.RoomStatus.EmptyRooms,       // Trống
+                @Model.RoomStatus.MaintenanceRooms  // Bảo trì
+            ];
+            var roomLabels = ["Đang thuê", "Trống", "Bảo trì"];
+
+
+            // --- B. VẼ BIỂU ĐỒ 1: DOANH THU (BAR CHART) ---
+            var ctx1 = $("#salse-revenue").get(0).getContext("2d");
+            var myChart1 = new Chart(ctx1, {
+                type: "bar",
+                data: {
+                    labels: revenueLabels,
+                    datasets: [{
+                        label: "Doanh thu thực tế",
+                        data: revenueValues,
+                        backgroundColor: "rgba(0, 156, 255, .7)", // Màu xanh chủ đạo
+                        borderColor: "rgba(0, 156, 255, 1)",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                // Format số tiền cho đẹp (thêm dấu phẩy)
+                                callback: function(value) {
+                                    return value.toLocaleString('vi-VN') + ' đ';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y.toLocaleString('vi-VN') + ' đ';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+
+            // --- C. VẼ BIỂU ĐỒ 2: TRẠNG THÁI PHÒNG (DOUGHNUT CHART) ---
+            var ctx2 = $("#room-status-chart").get(0).getContext("2d");
+            var myChart2 = new Chart(ctx2, {
+                type: "doughnut",
+                data: {
+                    labels: roomLabels,
+                    datasets: [{
+                        data: roomValues,
+                        backgroundColor: [
+                            "rgba(40, 167, 69, 0.8)",   // Xanh lá (Đang thuê)
+                            "rgba(255, 193, 7, 0.8)",   // Vàng (Trống)
+                            "rgba(220, 53, 69, 0.8)"    // Đỏ (Bảo trì)
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    cutout: '70%', // Làm cho vòng tròn mỏng đi cho đẹp
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+        });
+    </script>
+}

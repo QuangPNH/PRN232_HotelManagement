@@ -1,0 +1,104 @@
+﻿@model SmartHotel.UI.DTOs.Room.UpdateRoomRequest
+
+@{
+    ViewData["Title"] = "Cập nhật Phòng";
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="row justify-content-center">
+        <div class="col-sm-12 col-xl-8">
+            <div class="bg-light rounded h-100 p-4">
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h6 class="mb-0 text-primary text-uppercase">Cập nhật thông tin phòng</h6>
+                    <a href="@Url.Action("Index")" class="btn btn-sm btn-outline-secondary">
+                        <i class="fa fa-arrow-left me-1"></i>Quay lại
+                    </a>
+                </div>
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger">@ViewBag.Error</div>
+                }
+
+                <form asp-action="Edit" method="post">
+                    <input type="hidden" asp-for="RoomId" />
+
+                    <div class="row mb-3">
+                        <label asp-for="RoomNumber" class="col-sm-3 col-form-label">Số phòng</label>
+                        <div class="col-sm-9">
+                            <input asp-for="RoomNumber" class="form-control">
+                            <span asp-validation-for="RoomNumber" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <label asp-for="Status" class="col-sm-3 col-form-label">Trạng thái</label>
+                        <div class="col-sm-9">
+                            <select asp-for="Status" class="form-select mb-3" aria-label="Chọn trạng thái">
+                                <option value="Available">Phòng trống</option>
+                                <option value="Occupied">Đang có khách</option>
+                                <option value="Maintenance">Đang bảo trì</option>
+                                <option value="Cleaning">Đang dọn dẹp</option>
+                            </select>
+                            <span asp-validation-for="Status" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <label asp-for="Floor" class="col-sm-3 col-form-label">Tầng</label>
+                        <div class="col-sm-9">
+                            <input asp-for="Floor" type="number" class="form-control">
+                            <span asp-validation-for="Floor" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <label asp-for="Capacity" class="col-sm-3 col-form-label">Sức chứa</label>
+                        <div class="col-sm-9">
+                            <input asp-for="Capacity" type="number" class="form-control">
+                            <span asp-validation-for="Capacity" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <label asp-for="Price" class="col-sm-3 col-form-label">Giá thuê (VNĐ)</label>
+                        <div class="col-sm-9">
+                            <input asp-for="Price" type="number" class="form-control">
+                            <span asp-validation-for="Price" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <label asp-for="ImageUrl" class="col-sm-3 col-form-label">Link Ảnh</label>
+                        <div class="col-sm-9">
+                            <input asp-for="ImageUrl" class="form-control">
+                            <span asp-validation-for="ImageUrl" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <label asp-for="Description" class="col-sm-3 col-form-label">Mô tả</label>
+                        <div class="col-sm-9">
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-sm-9 offset-sm-3">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fa fa-check me-2"></i>Cập nhật
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

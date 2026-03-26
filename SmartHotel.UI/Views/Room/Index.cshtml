@@ -39,9 +39,12 @@
 
         <div class="d-flex align-items-center justify-content-between mb-4">
             <h6 class="mb-0">Danh sách Phòng</h6>
-            <a href="@Url.Action("Create")" class="btn btn-primary btn-sm">
-                <i class="fa fa-plus me-2"></i>Thêm Phòng
-            </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a href="@Url.Action("Create")" class="btn btn-primary btn-sm">
+                    <i class="fa fa-plus me-2"></i>Thêm Phòng
+                </a>            
+            }
         </div>
         <form method="get" asp-action="Index" class="row g-3 mb-3">
 
@@ -151,17 +154,19 @@
                                        class="btn btn-sm btn-link text-info">
                                         <i class="fa fa-eye"></i> View
                                     </a>
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <a href="@Url.Action("Edit", new { id = item.RoomId })"
+                                        class="btn btn-sm btn-link text-primary">
+                                            <i class="fa fa-edit me-1"></i> Edit
+                                        </a>
 
-                                    <a href="@Url.Action("Edit", new { id = item.RoomId })"
-                                       class="btn btn-sm btn-link text-primary">
-                                        <i class="fa fa-edit me-1"></i> Edit
-                                    </a>
-
-                                    <button type="button"
-                                            class="btn btn-sm btn-link text-danger"
-                                            onclick="openDeleteRoomModal(@item.RoomId, '@item.RoomNumber')">
-                                        <i class="fa fa-trash me-1"></i> Delete
-                                    </button>
+                                        <button type="button"
+                                        class="btn btn-sm btn-link text-danger"
+                                        onclick="openDeleteRoomModal(@item.RoomId, '@item.RoomNumber')">
+                                            <i class="fa fa-trash me-1"></i> Delete
+                                        </button>
+                                    }
                                 </td>
                             </tr>
                         }

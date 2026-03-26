@@ -56,33 +56,37 @@
                 </div>
 
                 <div class="navbar-nav w-100">
-
+                @if (User.IsInRole("Admin"))
+                {
                     <a asp-controller="Dashboard" asp-action="Index"
                        class="nav-item nav-link @(currentController == "Dashboard" ? "active" : "")">
                         <i class="fa fa-tachometer-alt me-2"></i>Dashboard
                     </a>
-
+                }
+                @if (User.IsInRole("Admin") || User.IsInRole("Staff"))
+                {
                     <a asp-controller="Room" asp-action="Index"
                        class="nav-item nav-link @(currentController == "Room" ? "active" : "")">
                         <i class="fa fa-th me-2"></i>Management Room
                     </a>
-
+                
                     <a asp-controller="Service" asp-action="Index"
                        class="nav-item nav-link @(currentController == "Service" ? "active" : "")">
                         <i class="fa fa-keyboard me-2"></i>Management Services
                     </a>
-
+                
                     <a asp-controller="Contract" asp-action="Index"
                        class="nav-item nav-link @(currentController == "Contract" ? "active" : "")">
                         <i class="fa fa-calculator me-2"></i>Management Contract
                     </a>
-                    <a asp-controller="Tenant" asp-action="Index"
-                       class="nav-item nav-link @(currentController == "Tenant" ? "active" : "")">
-                        <i class="fa fa-calculator me-2"></i>Management Tenant
-                    </a>
                     <a asp-controller="Invoice" asp-action="Index"
                        class="nav-item nav-link @(currentController == "Tenant" ? "active" : "")">
                         <i class="fa fa-calculator me-2"></i>Management Invoice
+                    </a>
+                }
+                    <a asp-controller="Tenant" asp-action="Index"
+                       class="nav-item nav-link @(currentController == "Tenant" ? "active" : "")">
+                        <i class="fa fa-calculator me-2"></i>Management Tenant
                     </a>
                 </div>
             </nav>

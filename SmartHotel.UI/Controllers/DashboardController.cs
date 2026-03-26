@@ -8,7 +8,7 @@ using System.Net.Http.Headers;
 
 namespace SmartHotel.UI.Controllers
 {
-    [Authorize] 
+    [Authorize(Roles = "Admin,Staff")]
     public class DashboardController : Controller
     {
         private readonly IHttpClientFactory _httpClientFactory;

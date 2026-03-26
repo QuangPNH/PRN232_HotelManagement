@@ -31,9 +31,12 @@
 
         <div class="d-flex align-items-center justify-content-between mb-4">
             <h6 class="mb-0">Danh sách Hóa đơn</h6>
-            <a href="@Url.Action("Create")" class="btn btn-primary btn-sm">
-                <i class="fa fa-file-invoice-dollar me-2"></i>Lập Hóa đơn mới
-            </a>
+            @if (User.IsInRole("Admin") || User.IsInRole("Staff"))
+            {
+                <a href="@Url.Action("Create")" class="btn btn-primary btn-sm">
+                    <i class="fa fa-file-invoice-dollar me-2"></i>Lập Hóa đơn mới
+                </a>
+            }
         </div>
 
         <form method="get" asp-action="Index" class="row g-3 mb-4">
@@ -112,7 +115,7 @@
                                         <i class="fa fa-eye"></i> Xem
                                     </a>
 
-                                    @if (!item.IsPaid)
+                                    @if (!item.IsPaid && (User.IsInRole("Admin") || User.IsInRole("Staff")))
                                     {
                                         <button type="button"
                                                 class="btn btn-sm btn-link text-success"

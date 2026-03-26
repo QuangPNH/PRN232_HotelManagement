@@ -28,7 +28,7 @@
             <button onclick="window.print()" class="btn btn-info btn-sm text-white me-2">
                 <i class="fa fa-print me-2"></i>In Hóa đơn
             </button>
-            @if (!Model.IsPaid)
+            @if (!Model.IsPaid && (User.IsInRole("Admin") || User.IsInRole("Staff")))
             {
                 <form method="post" asp-action="MarkAsPaid" asp-controller="Invoice" class="d-inline">
                     <input type="hidden" name="id" value="@Model.InvoiceId" />

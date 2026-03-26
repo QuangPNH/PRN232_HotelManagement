@@ -85,16 +85,19 @@
                         </div>
 
                         <div class="mt-4">
-                            <a asp-action="Edit" asp-route-id="@Model.RoomId" class="btn btn-primary me-2">
-                                <i class="fa fa-edit me-2"></i>Chỉnh sửa
-                            </a>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a asp-action="Edit" asp-route-id="@Model.RoomId" class="btn btn-primary me-2">
+                                    <i class="fa fa-edit me-2"></i>Chỉnh sửa
+                                </a>
 
-                            <form asp-action="Delete" asp-route-id="@Model.RoomId" method="post" class="d-inline"
-                                  onsubmit="return confirm('Bạn có chắc chắn muốn xóa phòng này không?');">
-                                <button type="submit" class="btn btn-danger">
-                                    <i class="fa fa-trash me-2"></i>Xóa phòng
-                                </button>
-                            </form>
+                                <form asp-action="Delete" asp-route-id="@Model.RoomId" method="post" class="d-inline"
+                                      onsubmit="return confirm('Bạn có chắc chắn muốn xóa phòng này không?');">
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fa fa-trash me-2"></i>Xóa phòng
+                                    </button>
+                                </form>
+                            }
                         </div>
                     </div>
                 </div>

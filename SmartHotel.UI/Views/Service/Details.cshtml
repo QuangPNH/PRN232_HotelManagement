@@ -63,9 +63,12 @@
                     <a asp-action="Index" class="btn btn-secondary">
                         <i class="fa fa-arrow-left me-2"></i>Quay lại
                     </a>
-                    <a asp-action="Edit" asp-route-id="@Model.ServiceId" class="btn btn-primary">
-                        <i class="fa fa-edit me-2"></i>Chỉnh sửa
-                    </a>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a asp-action="Edit" asp-route-id="@Model.ServiceId" class="btn btn-primary">
+                            <i class="fa fa-edit me-2"></i>Chỉnh sửa
+                        </a>
+                    }
                 </div>
 
             </div>

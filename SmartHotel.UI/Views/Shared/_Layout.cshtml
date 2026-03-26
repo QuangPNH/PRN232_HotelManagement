@@ -1,4 +1,4 @@
-﻿@{
+@{
     var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
     var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
 }
@@ -51,7 +51,7 @@
                     </div>
                     <div class="ms-3">
                         <h6 class="mb-0">Hello</h6>
-                        <span>ADMIN</span>
+                        <span>@(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Guest")</span>
                     </div>
                 </div>
 
@@ -80,14 +80,23 @@
                         <i class="fa fa-calculator me-2"></i>Management Contract
                     </a>
                     <a asp-controller="Invoice" asp-action="Index"
-                       class="nav-item nav-link @(currentController == "Tenant" ? "active" : "")">
+                       class="nav-item nav-link @(currentController == "Invoice" ? "active" : "")">
                         <i class="fa fa-calculator me-2"></i>Management Invoice
                     </a>
-                }
+                    
                     <a asp-controller="Tenant" asp-action="Index"
                        class="nav-item nav-link @(currentController == "Tenant" ? "active" : "")">
                         <i class="fa fa-calculator me-2"></i>Management Tenant
                     </a>
+                }
+
+                @if (User.IsInRole("Tenant"))
+                {
+                    <a asp-controller="TenantPortal" asp-action="Dashboard"
+                       class="nav-item nav-link @(currentController == "TenantPortal" ? "active" : "")">
+                        <i class="fa fa-user me-2"></i>Tenant Portal
+                    </a>
+                }
                 </div>
             </nav>
         </div>
@@ -105,7 +114,7 @@
                     <div class="nav-item dropdown">
                         <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
                             <img class="rounded-circle me-lg-2" src="/img/user.jpg" alt="" style="width: 40px; height: 40px;">
-                            <span class="d-none d-lg-inline-flex">John Doe</span>
+                            <span class="d-none d-lg-inline-flex">@(User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? User.Identity?.Name)</span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
                             <a href="#" class="dropdown-item">My Profile</a>

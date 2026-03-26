@@ -48,7 +48,7 @@
             <div class="mt-4 text-center">
                 <a asp-action="Index" class="btn btn-secondary me-2">Quay lại</a>
 
-                @if (Model.IsActive)
+                @if (Model.IsActive && (User.IsInRole("Admin") || User.IsInRole("Staff")))
                 {
                     <form asp-action="Terminate" asp-route-id="@Model.ContractId" method="post" class="d-inline"
                           onsubmit="return confirm('Bạn chắc chắn muốn thanh lý hợp đồng này?');">

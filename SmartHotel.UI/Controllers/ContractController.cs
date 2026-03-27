@@ -70,7 +70,7 @@ namespace SmartHotel.UI.Controllers
             try
             {
                 var client = await CreateClientAsync();
-                var response = await client.PostAsJsonAsync("Contract", request);
+                var response = await client.PostAsJsonAsync("Contract", value: request);
 
                 if (response.IsSuccessStatusCode)
                 {

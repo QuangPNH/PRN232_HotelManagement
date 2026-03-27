@@ -40,9 +40,10 @@ namespace SmartHotel.BLL.Services
             if (room.Status == RoomStatus.Occupied)
                 throw new Exception($"Phòng {room.RoomNumber} đang có người ở.");
 
-            var activeContract = await _contractRepo.GetActiveContractByRoomIdAsync(request.RoomId);
-            if (activeContract != null)
-                throw new Exception($"Phòng {room.RoomNumber} đang có hợp đồng hiệu lực (ID: {activeContract.ContractId}).");
+            var allContracts = await _contractRepo.GetAllAsync();
+            var activeContractCount = allContracts.Count(c => c.RoomId == request.RoomId && c.IsActive);
+            if (activeContractCount >= room.Capacity)
+                throw new Exception($"Phòng {room.RoomNumber} đã đạt số lượng người thuê tối đa ({room.Capacity} người).");
 
             var tenant = await _tenantRepo.GetByIdAsync(request.TenantId);
             if (tenant == null) throw new Exception("Khách thuê không tồn tại.");
@@ -62,7 +63,8 @@ namespace SmartHotel.BLL.Services
             await _contractRepo.CreateAsync(contract);
 
 
-            await _roomRepo.UpdateRoomStatusAsync(room.RoomId, RoomStatus.Occupied);
+            if (activeContractCount + 1 >= room.Capacity)
+                await _roomRepo.UpdateRoomStatusAsync(room.RoomId, RoomStatus.Occupied);
         }
 
 
